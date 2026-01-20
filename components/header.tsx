@@ -18,12 +18,25 @@ const Header = () => {
         }}>Voltar</Text>
       </TouchableOpacity>
 
+      <View style={{
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 20
+      }}>
+        <TouchableOpacity style={styles.backButton} onPress={ () => router.replace('/history') }>
+          <Ionicons style={{
+            color: 'white',
+            fontSize: 35
+          }} name='time-outline' />
+        </TouchableOpacity>
+{/* 
         <View style={styles.iconContainer}>
           <Ionicons style={{
             textAlign: 'center',
             color: 'white'
           }} name="logo-youtube" color={'red'} size={20}/>
-        </View>
+        </View> */}
+      </View>
     </View>
   );
 }
@@ -46,7 +59,7 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     width: 40,
-    height: 30,
+    height: 40,
     padding: 2,
     borderWidth: 2,
     borderColor: 'white',

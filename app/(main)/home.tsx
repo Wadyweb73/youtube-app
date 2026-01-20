@@ -1,41 +1,44 @@
 import EmptyStatsArea from '@/components/emptyStatsArea';
 import Header from '@/components/header';
+import Thumb from '@/components/thumb';
+import { api } from '@/convex/_generated/api';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useMutation } from 'convex/react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const HomeScreen = () => {
   const [inputText, setInputText] = useState("");
-  const [data, setData]           = useState();
+  const [data, setData]           = useState(null);
 
-  // const onSubmitButtonClicked = async () => {
-  //   if (inputText.trim() === '') {
-  //     window.alert('Impossivel encontrar video! Nenhum link foi inserido.')
-  //     return;
-  //   }
+  const saveNewLink = useMutation(api.history.addLink);
 
-  //   const id = (inputText.split('=')).at(1); // Extrai o ID do video a partir do link fornecido no input
-  //   const params = {
-  //     part: 'snippet,statistics',
-  //     id: id,
-  //     key: 'AIzaSyCcMdiXy4YjWy40ClBSmdp6MEbchRNMHz8'
-  //   };
-  //   const queryString = new URLSearchParams(JSON.stringify(params)); 
+  useEffect(() => {
+    const fetchLinkFromStorage = async () => {
+      const storedLink = await AsyncStorage.getItem('link');
 
-  //   const fetchedData = await fetch(`https://corsproxy.io/?https://developers.google.com/youtube/v3/docs/videos?${queryString}`);
+      if (storedLink) {
+        setInputText(storedLink);
+        await onSubmitButtonClicked(storedLink);
+        AsyncStorage.removeItem('link');
+      }
+    };
 
-  //   console.log(fetchedData);
-  // }
+    fetchLinkFromStorage();
+  }, []);
 
-  const onSubmitButtonClicked = async () => {
-    if (inputText.trim() === '') {
+  const onSubmitButtonClicked = async (link?: string) => {
+    const inputValue:string = link ?? inputText;
+
+    if (inputValue.trim() === '') {
       alert('Impossível encontrar vídeo! Nenhum link foi inserido.');
       return;
     }
 
     // Extrai ID de vários formatos do YouTube
-    const match = inputText.match(
+    const match = inputValue.match(
       /(?:v=|youtu\.be\/|embed\/|shorts\/)([0-9A-Za-z_-]{11})/
     );
 
@@ -46,21 +49,22 @@ const HomeScreen = () => {
     }
 
     const videoId = match[1];
-
-    const params = {
+    const params  = {
       part: 'snippet,statistics',
       id: videoId,
       key: 'AIzaSyCcMdiXy4YjWy40ClBSmdp6MEbchRNMHz8',
     };
 
     const queryString = new URLSearchParams(params).toString();
-
-    const url ='https://www.googleapis.com/youtube/v3/videos?' + queryString;
+    const url         ='https://www.googleapis.com/youtube/v3/videos?' + queryString;
 
     const response = await fetch(url);
     const data = await response.json();
+    
+    setData(data['items'][0] || null);
+    console.log(data['items'][0]);
 
-    console.log(data);
+    saveNewLink({ url: inputText });
   };
 
   return (
@@ -80,7 +84,6 @@ const HomeScreen = () => {
             value={inputText}
             onChangeText={setInputText}
             placeholderTextColor={'#947e7eff'}
-            autoFocus={true}
           />
           <TouchableOpacity style={styles.submitButton} onPress={ () => { onSubmitButtonClicked() } }>
             <Ionicons style={{
@@ -91,7 +94,7 @@ const HomeScreen = () => {
         </View>
 
         {
-          (false) ? (
+          (data === null) ? (
             <EmptyStatsArea />
           ) : (
             <ScrollView style={styles.statsContainer} contentContainerStyle={{
@@ -99,6 +102,7 @@ const HomeScreen = () => {
               justifyContent: 'center',
               alignItems: 'center',
             }}>
+              <Thumb video={data} />
             </ScrollView>
           )
         }
