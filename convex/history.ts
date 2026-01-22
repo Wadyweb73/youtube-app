@@ -10,7 +10,7 @@ export const getLinks = query({
 })
 
 export const addLink = mutation({
-  args: { url: v.string() },
+  args: { url: v.string(), videoTitle: v.string(), thumbnail: v.string() },
   handler: async (context, args) => {
     const existingLnks = context.db.query('history').order('desc').collect();
 
@@ -20,7 +20,9 @@ export const addLink = mutation({
     }
 
     const link = await context.db.insert("history", {
-      url: args.url
+      url: args.url, 
+      title: args.videoTitle,
+      thumbnail: args.thumbnail 
     });
 
     return link;

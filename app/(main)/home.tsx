@@ -64,7 +64,11 @@ const HomeScreen = () => {
     setData(data['items'][0] || null);
     console.log(data['items'][0]);
 
-    saveNewLink({ url: inputText });
+    saveNewLink({ 
+      url: inputText, 
+      videoTitle: data['items'][0].snippet.title,
+      thumbnail: data['items'][0].snippet.thumbnails.default.url
+    });
   };
 
   return (
